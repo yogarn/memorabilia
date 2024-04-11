@@ -27,6 +27,7 @@ func (r *Rest) MountEndpoint() {
 	diary.GET("/", r.GetDiary)
 	diary.GET("/:id", r.GetDiaryById)
 	diary.PATCH("/:id", r.UpdateDiary)
+	diary.DELETE("/:id", r.DeleteDiary)
 }
 
 func (r *Rest) Run() {

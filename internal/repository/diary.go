@@ -15,6 +15,7 @@ type IDiaryRepository interface {
 	GetDiaryById(id string) (*entity.Diary, error)
 	GetDiary() ([]*entity.Diary, error)
 	UpdateDiary(id string, diary *model.UpdateDiary) (*model.UpdateDiary, error)
+	DeleteDiary(id string) error
 }
 
 type DiaryRepository struct {
@@ -96,7 +97,23 @@ func (diaryRepository *DiaryRepository) UpdateDiary(id string, diary *model.Upda
 		return nil, err
 	}
 	if rowsAffected <= 0 {
-		return nil, errors.New("no row affected")
+		return nil, errors.New("no row updated")
 	}
 	return diary, nil
+}
+
+func (diaryRepository *DiaryRepository) DeleteDiary(id string) error {
+	stmt := `DELETE FROM diary WHERE id = ?`
+	result, err := diaryRepository.db.Exec(stmt, id)
+	if err != nil {
+		return err
+	}
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rowsAffected <= 0 {
+		return errors.New("no row deleted")
+	}
+	return nil
 }

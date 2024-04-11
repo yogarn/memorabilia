@@ -56,3 +56,13 @@ func (r *Rest) UpdateDiary(ctx *gin.Context) {
 	}
 	response.Success(ctx, http.StatusOK, "success", diary)
 }
+
+func (r *Rest) DeleteDiary(ctx *gin.Context) {
+	id := ctx.Param("id")
+	err := r.service.DiaryService.DeleteDiary(id)
+	if err != nil {
+		response.Error(ctx, http.StatusInternalServerError, "failed to delete diary", err)
+		return
+	}
+	response.Success(ctx, http.StatusOK, "success", id)
+}

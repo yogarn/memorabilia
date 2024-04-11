@@ -13,6 +13,7 @@ type IDiaryService interface {
 	GetDiaryById(id string) (*entity.Diary, error)
 	GetDiary() ([]*entity.Diary, error)
 	UpdateDiary(id string, diary *model.UpdateDiary) (*model.UpdateDiary, error)
+	DeleteDiary(id string) error
 }
 
 type DiaryService struct {
@@ -58,4 +59,12 @@ func (diaryService *DiaryService) UpdateDiary(id string, diaryReq *model.UpdateD
 		return nil, err
 	}
 	return diary, nil
+}
+
+func (diaryService *DiaryService) DeleteDiary(id string) error {
+	err := diaryService.DiaryRepository.DeleteDiary(id)
+	if err != nil {
+		return err
+	}
+	return nil
 }
