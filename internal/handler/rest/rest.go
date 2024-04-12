@@ -20,14 +20,18 @@ func NewRest(service *service.Service) *Rest {
 	}
 }
 
-func (r *Rest) MountEndpoint() {
-	routerGroup := r.router.Group("/api/v1")
+func MountDiary(routerGroup *gin.RouterGroup, r *Rest) {
 	diary := routerGroup.Group("/diary")
 	diary.POST("", r.CreateDiary)
 	diary.GET("/", r.GetDiary)
 	diary.GET("/:id", r.GetDiaryById)
 	diary.PATCH("/:id", r.UpdateDiary)
 	diary.DELETE("/:id", r.DeleteDiary)
+}
+
+func (r *Rest) MountEndpoint() {
+	routerGroup := r.router.Group("/api/v1")
+	MountDiary(routerGroup, r)
 }
 
 func (r *Rest) Run() {
