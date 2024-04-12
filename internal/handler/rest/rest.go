@@ -3,20 +3,23 @@ package rest
 import (
 	"fmt"
 	"memorabilia/internal/service"
+	"memorabilia/pkg/middleware"
 	"os"
 
 	"github.com/gin-gonic/gin"
 )
 
 type Rest struct {
-	router  *gin.Engine
-	service *service.Service
+	router     *gin.Engine
+	service    *service.Service
+	middleware middleware.Interface
 }
 
-func NewRest(service *service.Service) *Rest {
+func NewRest(service *service.Service, middleware middleware.Interface) *Rest {
 	return &Rest{
-		router:  gin.Default(),
-		service: service,
+		router:     gin.Default(),
+		service:    service,
+		middleware: middleware,
 	}
 }
 
@@ -30,6 +33,7 @@ func MountDiary(routerGroup *gin.RouterGroup, r *Rest) {
 }
 
 func (r *Rest) MountEndpoint() {
+	r.router.Use(r.middleware.Timeout())
 	routerGroup := r.router.Group("/api/v1")
 	MountDiary(routerGroup, r)
 }
