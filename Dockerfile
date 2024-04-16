@@ -2,13 +2,13 @@
 FROM golang:1.22.0
 
 # Set the working directory in the container
-WORKDIR /cmd/app
+WORKDIR /app
 
 # Copy the application files into the working directory
-COPY ./cmd/main /cmd/app
+COPY . /app
 
 # Build the application
-RUN go build -o main .
+RUN go build -o main ./cmd/app
 
 # Expose port 8080
 EXPOSE 8080
