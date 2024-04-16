@@ -15,7 +15,7 @@ func (r *Rest) CreateDiary(ctx *gin.Context) {
 		return
 	}
 
-	diary, err := r.service.DiaryService.CreateDiary(&diaryReq)
+	diary, err := r.service.DiaryService.CreateDiary(ctx, &diaryReq)
 	if err != nil {
 		response.Error(ctx, http.StatusInternalServerError, "failed to create diary", err)
 		return

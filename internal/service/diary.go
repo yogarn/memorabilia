@@ -4,12 +4,14 @@ import (
 	"memorabilia/entity"
 	"memorabilia/internal/repository"
 	"memorabilia/model"
+	"memorabilia/pkg/jwt"
 
+	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
 
 type IDiaryService interface {
-	CreateDiary(diaryReq *model.CreateDiary) (*entity.Diary, error)
+	CreateDiary(ctx *gin.Context, diaryReq *model.CreateDiary) (*entity.Diary, error)
 	GetDiaryById(id string) (*entity.Diary, error)
 	GetDiary() ([]*entity.Diary, error)
 	UpdateDiary(id string, diary *model.UpdateDiary) (*model.UpdateDiary, error)
@@ -18,19 +20,28 @@ type IDiaryService interface {
 
 type DiaryService struct {
 	DiaryRepository repository.IDiaryRepository
+	jwt             jwt.Interface
 }
 
-func NewDiaryService(diaryRepository repository.IDiaryRepository) IDiaryService {
-	return &DiaryService{diaryRepository}
-}
-
-func (diaryService *DiaryService) CreateDiary(diaryReq *model.CreateDiary) (*entity.Diary, error) {
-	diary := &entity.Diary{
-		ID:    uuid.New(),
-		Title: diaryReq.Title,
-		Body:  diaryReq.Body,
+func NewDiaryService(diaryRepository repository.IDiaryRepository, jwt jwt.Interface) IDiaryService {
+	return &DiaryService{
+		DiaryRepository: diaryRepository,
+		jwt:             jwt,
 	}
-	diary, err := diaryService.DiaryRepository.CreateDiary(diary)
+}
+
+func (diaryService *DiaryService) CreateDiary(ctx *gin.Context, diaryReq *model.CreateDiary) (*entity.Diary, error) {
+	userId, err := diaryService.jwt.GetLoginUser(ctx)
+	if err != nil {
+		return nil, err
+	}
+	diary := &entity.Diary{
+		ID:     uuid.New(),
+		UserID: userId,
+		Title:  diaryReq.Title,
+		Body:   diaryReq.Body,
+	}
+	diary, err = diaryService.DiaryRepository.CreateDiary(diary)
 	if err != nil {
 		return nil, err
 	}

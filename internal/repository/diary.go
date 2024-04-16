@@ -27,49 +27,71 @@ func NewDiaryRepository(db *sql.DB) IDiaryRepository {
 }
 
 func (diaryRepository *DiaryRepository) CreateDiary(diary *entity.Diary) (*entity.Diary, error) {
-	stmt := `INSERT INTO diary (id, title, body, createdAt)
-VALUES(?, ?, ?, UTC_TIMESTAMP())`
-
-	_, err := diaryRepository.db.Exec(stmt, diary.ID, diary.Title, diary.Body)
+	stmt := `INSERT INTO diaries (id, userId, title, body, createdAt)
+VALUES(?, ?, ?, ?, UTC_TIMESTAMP())`
+	tx, err := diaryRepository.db.Begin()
 	if err != nil {
+		return nil, err
+	}
+
+	_, err = tx.Exec(stmt, diary.ID, diary.UserID, diary.Title, diary.Body)
+	if err != nil {
+		tx.Rollback()
 		return diary, err
 	}
 
-	return diary, nil
+	err = tx.Commit()
+	return diary, err
 }
 
 func (diaryRepository *DiaryRepository) GetDiaryById(id string) (*entity.Diary, error) {
 	diary := &entity.Diary{}
-	stmt := `SELECT * FROM diary WHERE id = ?`
-	row := diaryRepository.db.QueryRow(stmt, id)
-	err := row.Scan(&diary.ID, &diary.Title, &diary.Body, &diary.CreatedAt)
+	stmt := `SELECT * FROM diaries WHERE id = ?`
+	tx, err := diaryRepository.db.Begin()
 	if err != nil {
+		return nil, err
+	}
+
+	row := tx.QueryRow(stmt, id)
+	err = row.Scan(&diary.ID, &diary.UserID, &diary.Title, &diary.Body, &diary.CreatedAt)
+	if err != nil {
+		tx.Rollback()
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, errors.New("models: no matching record found")
 		} else {
 			return nil, err
 		}
 	}
-	return diary, nil
+	err = tx.Commit()
+	return diary, err
 }
 
 func (diaryRepository *DiaryRepository) GetDiary() ([]*entity.Diary, error) {
 	diaries := []*entity.Diary{}
-	stmt := `SELECT * FROM diary ORDER BY createdAt DESC`
-	rows, err := diaryRepository.db.Query(stmt)
+	stmt := `SELECT * FROM diaries ORDER BY createdAt DESC`
+	tx, err := diaryRepository.db.Begin()
 	if err != nil {
 		return nil, err
 	}
+
+	rows, err := tx.Query(stmt)
+	if err != nil {
+		tx.Rollback()
+		return nil, err
+	}
 	defer rows.Close()
+
 	for rows.Next() {
 		diary := &entity.Diary{}
-		err := rows.Scan(&diary.ID, &diary.Title, &diary.Body, &diary.CreatedAt)
+		err := rows.Scan(&diary.ID, &diary.UserID, &diary.Title, &diary.Body, &diary.CreatedAt)
 		if err != nil {
+			tx.Rollback()
 			return nil, err
 		}
 		diaries = append(diaries, diary)
 	}
-	return diaries, nil
+	err = tx.Commit()
+	return diaries, err
 }
 
 func (diaryRepository *DiaryRepository) UpdateDiary(id string, diary *model.UpdateDiary) (*model.UpdateDiary, error) {
@@ -87,33 +109,57 @@ func (diaryRepository *DiaryRepository) UpdateDiary(id string, diary *model.Upda
 
 	values = append(values, id)
 
-	stmt := fmt.Sprintf("UPDATE diary SET %s WHERE id = ?", strings.Join(column, ", "))
-	result, err := diaryRepository.db.Exec(stmt, values...)
+	stmt := fmt.Sprintf("UPDATE diaries SET %s WHERE id = ?", strings.Join(column, ", "))
+	tx, err := diaryRepository.db.Begin()
 	if err != nil {
 		return nil, err
 	}
+
+	result, err := tx.Exec(stmt, values...)
+	if err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
+		tx.Rollback()
 		return nil, err
 	}
+
 	if rowsAffected <= 0 {
+		tx.Rollback()
 		return nil, errors.New("no row updated")
 	}
-	return diary, nil
+
+	err = tx.Commit()
+	return diary, err
 }
 
 func (diaryRepository *DiaryRepository) DeleteDiary(id string) error {
-	stmt := `DELETE FROM diary WHERE id = ?`
-	result, err := diaryRepository.db.Exec(stmt, id)
+	stmt := `DELETE FROM diaries WHERE id = ?`
+	tx, err := diaryRepository.db.Begin()
 	if err != nil {
 		return err
 	}
+
+	result, err := tx.Exec(stmt, id)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
+		tx.Rollback()
 		return err
 	}
+
 	if rowsAffected <= 0 {
+		tx.Rollback()
 		return errors.New("no row deleted")
 	}
-	return nil
+
+	err = tx.Commit()
+	return err
 }
