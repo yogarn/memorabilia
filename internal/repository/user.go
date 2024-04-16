@@ -134,7 +134,6 @@ func (userRepository *UserRepository) UpdateUser(id uuid.UUID, userReq *model.Up
 		return nil, err
 	}
 
-	fmt.Println(rowsAffected)
 	if rowsAffected <= 0 {
 		tx.Rollback()
 		return nil, errors.New("no row updated")
