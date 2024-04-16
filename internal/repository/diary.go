@@ -182,11 +182,6 @@ func (diaryRepository *DiaryRepository) GetDiary() ([]*entity.Diary, error) {
 				diaryPicture.CreatedAt = diaryPictureNull.CreatedAt.Time
 			}
 
-			if diary == nil {
-				fmt.Println("diary is nil")
-			}
-
-			fmt.Println("test")
 			diary.Pictures = append(diary.Pictures, diaryPicture)
 		}
 	}
