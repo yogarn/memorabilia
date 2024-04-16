@@ -22,3 +22,9 @@ go.work
 
 # Environment file
 *.env
+
+# VS Code file
+*.vscode
+
+# SQL file
+*.sql
