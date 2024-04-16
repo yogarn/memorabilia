@@ -80,35 +80,12 @@ func (diaryRepository *DiaryRepository) GetDiaryById(id string) (*entity.Diary, 
 			return nil, err
 		}
 
-		if diaryPictureNull.ID.Valid {
-			diaryPicture := &entity.DiaryPicture{}
+		diaryPicture, err := diaryPictureNull.ValidatePictureNullString()
+		if err != nil {
+			return nil, err
+		}
 
-			if diaryPictureNull.ID.Valid {
-				parsedUUID, err := uuid.Parse(diaryPictureNull.ID.String)
-				if err != nil {
-					return nil, err
-				}
-
-				diaryPicture.ID = parsedUUID
-			}
-
-			if diaryPictureNull.DiaryID.Valid {
-				parsedUUID, err := uuid.Parse(diaryPictureNull.DiaryID.String)
-				if err != nil {
-					return nil, err
-				}
-
-				diaryPicture.DiaryID = parsedUUID
-			}
-
-			if diaryPictureNull.Link.Valid {
-				diaryPicture.Link = diaryPictureNull.Link.String
-			}
-
-			if diaryPictureNull.CreatedAt.Valid {
-				diaryPicture.CreatedAt = diaryPictureNull.CreatedAt.Time
-			}
-
+		if diaryPicture != nil {
 			diary.Pictures = append(diary.Pictures, diaryPicture)
 		}
 	}
@@ -153,35 +130,12 @@ func (diaryRepository *DiaryRepository) GetDiary() ([]*entity.Diary, error) {
 			diary = diariesMap[diaryRow.ID]
 		}
 
-		if diaryPictureNull.ID.Valid {
-			diaryPicture := &entity.DiaryPicture{}
+		diaryPicture, err := diaryPictureNull.ValidatePictureNullString()
+		if err != nil {
+			return nil, err
+		}
 
-			if diaryPictureNull.ID.Valid {
-				parsedUUID, err := uuid.Parse(diaryPictureNull.ID.String)
-				if err != nil {
-					return nil, err
-				}
-
-				diaryPicture.ID = parsedUUID
-			}
-
-			if diaryPictureNull.DiaryID.Valid {
-				parsedUUID, err := uuid.Parse(diaryPictureNull.DiaryID.String)
-				if err != nil {
-					return nil, err
-				}
-
-				diaryPicture.DiaryID = parsedUUID
-			}
-
-			if diaryPictureNull.Link.Valid {
-				diaryPicture.Link = diaryPictureNull.Link.String
-			}
-
-			if diaryPictureNull.CreatedAt.Valid {
-				diaryPicture.CreatedAt = diaryPictureNull.CreatedAt.Time
-			}
-
+		if diaryPicture != nil {
 			diary.Pictures = append(diary.Pictures, diaryPicture)
 		}
 	}
