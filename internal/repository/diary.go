@@ -8,6 +8,8 @@ import (
 	"strings"
 
 	"database/sql"
+
+	"github.com/google/uuid"
 )
 
 type IDiaryRepository interface {
@@ -46,14 +48,18 @@ VALUES(?, ?, ?, ?, UTC_TIMESTAMP())`
 
 func (diaryRepository *DiaryRepository) GetDiaryById(id string) (*entity.Diary, error) {
 	diary := &entity.Diary{}
-	stmt := `SELECT * FROM diaries WHERE id = ?`
+
+	stmt := `SELECT * FROM diaries 
+	LEFT JOIN diary_pictures ON diaries.id = diary_pictures.diaryId
+	WHERE diaries.id = ? 
+	`
+
 	tx, err := diaryRepository.db.Begin()
 	if err != nil {
 		return nil, err
 	}
 
-	row := tx.QueryRow(stmt, id)
-	err = row.Scan(&diary.ID, &diary.UserID, &diary.Title, &diary.Body, &diary.CreatedAt)
+	rows, err := tx.Query(stmt, id)
 	if err != nil {
 		tx.Rollback()
 		if errors.Is(err, sql.ErrNoRows) {
@@ -62,13 +68,62 @@ func (diaryRepository *DiaryRepository) GetDiaryById(id string) (*entity.Diary, 
 			return nil, err
 		}
 	}
+
+	for rows.Next() {
+		diaryPictureNull := &entity.DiaryPictureNull{}
+
+		err := rows.Scan(&diary.ID, &diary.UserID, &diary.Title, &diary.Body, &diary.CreatedAt,
+			&diaryPictureNull.ID, &diaryPictureNull.DiaryID, &diaryPictureNull.Link, &diaryPictureNull.CreatedAt)
+
+		if err != nil {
+			tx.Rollback()
+			return nil, err
+		}
+
+		if diaryPictureNull.ID.Valid {
+			diaryPicture := &entity.DiaryPicture{}
+
+			if diaryPictureNull.ID.Valid {
+				parsedUUID, err := uuid.Parse(diaryPictureNull.ID.String)
+				if err != nil {
+					return nil, err
+				}
+
+				diaryPicture.ID = parsedUUID
+			}
+
+			if diaryPictureNull.DiaryID.Valid {
+				parsedUUID, err := uuid.Parse(diaryPictureNull.DiaryID.String)
+				if err != nil {
+					return nil, err
+				}
+
+				diaryPicture.DiaryID = parsedUUID
+			}
+
+			if diaryPictureNull.Link.Valid {
+				diaryPicture.Link = diaryPictureNull.Link.String
+			}
+
+			if diaryPictureNull.CreatedAt.Valid {
+				diaryPicture.CreatedAt = diaryPictureNull.CreatedAt.Time
+			}
+
+			diary.Pictures = append(diary.Pictures, diaryPicture)
+		}
+	}
+
 	err = tx.Commit()
 	return diary, err
 }
 
 func (diaryRepository *DiaryRepository) GetDiary() ([]*entity.Diary, error) {
-	diaries := []*entity.Diary{}
-	stmt := `SELECT * FROM diaries ORDER BY createdAt DESC`
+	diariesMap := map[uuid.UUID]*entity.Diary{}
+	stmt := `
+	SELECT * FROM diaries 
+	LEFT JOIN diary_pictures ON diaries.id = diary_pictures.diaryId
+	`
+
 	tx, err := diaryRepository.db.Begin()
 	if err != nil {
 		return nil, err
@@ -82,12 +137,62 @@ func (diaryRepository *DiaryRepository) GetDiary() ([]*entity.Diary, error) {
 	defer rows.Close()
 
 	for rows.Next() {
-		diary := &entity.Diary{}
-		err := rows.Scan(&diary.ID, &diary.UserID, &diary.Title, &diary.Body, &diary.CreatedAt)
+		diaryRow := &entity.Diary{}
+		diaryPictureNull := &entity.DiaryPictureNull{}
+
+		err := rows.Scan(&diaryRow.ID, &diaryRow.UserID, &diaryRow.Title, &diaryRow.Body, &diaryRow.CreatedAt,
+			&diaryPictureNull.ID, &diaryPictureNull.DiaryID, &diaryPictureNull.Link, &diaryPictureNull.CreatedAt)
 		if err != nil {
 			tx.Rollback()
 			return nil, err
 		}
+
+		diary, ok := diariesMap[diaryRow.ID]
+		if !ok {
+			diariesMap[diaryRow.ID] = diaryRow
+			diary = diariesMap[diaryRow.ID]
+		}
+
+		if diaryPictureNull.ID.Valid {
+			diaryPicture := &entity.DiaryPicture{}
+
+			if diaryPictureNull.ID.Valid {
+				parsedUUID, err := uuid.Parse(diaryPictureNull.ID.String)
+				if err != nil {
+					return nil, err
+				}
+
+				diaryPicture.ID = parsedUUID
+			}
+
+			if diaryPictureNull.DiaryID.Valid {
+				parsedUUID, err := uuid.Parse(diaryPictureNull.DiaryID.String)
+				if err != nil {
+					return nil, err
+				}
+
+				diaryPicture.DiaryID = parsedUUID
+			}
+
+			if diaryPictureNull.Link.Valid {
+				diaryPicture.Link = diaryPictureNull.Link.String
+			}
+
+			if diaryPictureNull.CreatedAt.Valid {
+				diaryPicture.CreatedAt = diaryPictureNull.CreatedAt.Time
+			}
+
+			if diary == nil {
+				fmt.Println("diary is nil")
+			}
+
+			fmt.Println("test")
+			diary.Pictures = append(diary.Pictures, diaryPicture)
+		}
+	}
+
+	diaries := []*entity.Diary{}
+	for _, diary := range diariesMap {
 		diaries = append(diaries, diary)
 	}
 	err = tx.Commit()

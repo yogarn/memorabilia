@@ -48,9 +48,12 @@ func (diaryPictureRepository *DiaryPictureRepository) DeleteDiaryPicture(ID uuid
 
 	_, err = tx.Exec(stmt, ID)
 	if err != nil {
+		tx.Rollback()
 		return err
 	}
-	return nil
+
+	err = tx.Commit()
+	return err
 }
 
 func (diaryPictureRepository *DiaryPictureRepository) GetDiaryPictureById(ID uuid.UUID) (*entity.DiaryPicture, error) {
@@ -64,7 +67,10 @@ func (diaryPictureRepository *DiaryPictureRepository) GetDiaryPictureById(ID uui
 	diaryPicture := &entity.DiaryPicture{}
 	err = row.Scan(&diaryPicture.ID, &diaryPicture.DiaryID, &diaryPicture.Link, &diaryPicture.CreatedAt)
 	if err != nil {
+		tx.Rollback()
 		return nil, err
 	}
-	return diaryPicture, nil
+
+	err = tx.Commit()
+	return diaryPicture, err
 }

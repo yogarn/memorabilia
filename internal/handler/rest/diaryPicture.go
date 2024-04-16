@@ -28,3 +28,18 @@ func (r *Rest) AddDiaryPicture(ctx *gin.Context) {
 	}
 	response.Success(ctx, http.StatusOK, "success", diaryPicture)
 }
+
+func (r *Rest) DeleteDiaryPicture(ctx *gin.Context) {
+	id := ctx.Param("pictureId")
+	parsedId, err := uuid.Parse(id)
+	if err != nil {
+		response.Error(ctx, http.StatusBadRequest, "failed to parse uuid", err)
+		return
+	}
+
+	err = r.service.DiaryPictureService.DeleteDiaryPicture(parsedId)
+	if err != nil {
+		response.Error(ctx, http.StatusInternalServerError, "failed to add picture to diary", err)
+	}
+	response.Success(ctx, http.StatusOK, "success", err)
+}

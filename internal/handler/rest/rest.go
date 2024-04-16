@@ -37,22 +37,23 @@ func MountDiary(routerGroup *gin.RouterGroup, r *Rest) {
 	MountDiaryPicture(diary, r)
 	diary.POST("", r.CreateDiary)
 	diary.GET("/", r.GetDiary)
-	diary.GET("/:id", r.GetDiaryById)
-	diary.PATCH("/:id", r.UpdateDiary)
-	diary.DELETE("/:id", r.DeleteDiary)
+	diary.GET("/:diaryId", r.GetDiaryById)
+	diary.PATCH("/:diaryId", r.UpdateDiary)
+	diary.DELETE("/:diaryId", r.DeleteDiary)
 }
 
 func MountDiaryPicture(routerGroup *gin.RouterGroup, r *Rest) {
 	diaryPicture := routerGroup.Group("/:diaryId/pictures")
 	diaryPicture.POST("", r.AddDiaryPicture)
+	diaryPicture.DELETE("/:pictureId", r.DeleteDiaryPicture)
 }
 
 func MountUser(routerGroup *gin.RouterGroup, r *Rest) {
 	user := routerGroup.Group("/user")
 	user.POST("/register", r.Register)
 	user.POST("/login", r.Login)
-	user.PATCH("", r.middleware.AuthenticateUser, r.UpdateProfile)
 	user.PUT("/profile-picture", r.middleware.AuthenticateUser, r.UploadProfilePicture)
+	user.PATCH("", r.middleware.AuthenticateUser, r.UpdateProfile)
 	user.GET("", r.middleware.AuthenticateUser, r.GetLoginUser)
 }
 

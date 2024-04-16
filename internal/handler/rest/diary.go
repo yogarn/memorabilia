@@ -24,7 +24,7 @@ func (r *Rest) CreateDiary(ctx *gin.Context) {
 }
 
 func (r *Rest) GetDiaryById(ctx *gin.Context) {
-	id := ctx.Param("id")
+	id := ctx.Param("diaryId")
 	diary, err := r.service.DiaryService.GetDiaryById(id)
 	if err != nil {
 		response.Error(ctx, http.StatusInternalServerError, "failed to get diary", err)
@@ -43,7 +43,7 @@ func (r *Rest) GetDiary(ctx *gin.Context) {
 }
 
 func (r *Rest) UpdateDiary(ctx *gin.Context) {
-	id := ctx.Param("id")
+	id := ctx.Param("diaryId")
 	var diaryReq model.UpdateDiary
 	if err := ctx.BindJSON(&diaryReq); err != nil {
 		response.Error(ctx, http.StatusBadRequest, "failed to bind json", err)
@@ -58,7 +58,7 @@ func (r *Rest) UpdateDiary(ctx *gin.Context) {
 }
 
 func (r *Rest) DeleteDiary(ctx *gin.Context) {
-	id := ctx.Param("id")
+	id := ctx.Param("diaryId")
 	err := r.service.DiaryService.DeleteDiary(id)
 	if err != nil {
 		response.Error(ctx, http.StatusInternalServerError, "failed to delete diary", err)

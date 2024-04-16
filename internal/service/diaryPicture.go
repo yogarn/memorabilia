@@ -51,7 +51,17 @@ func (diaryPictureService *DiaryPictureService) AddDiaryPicture(diaryID uuid.UUI
 }
 
 func (diaryPictureService *DiaryPictureService) DeleteDiaryPicture(ID uuid.UUID) error {
-	err := diaryPictureService.DiaryPictureRepository.DeleteDiaryPicture(ID)
+	diaryPicture, err := diaryPictureService.DiaryPictureRepository.GetDiaryPictureById(ID)
+	if err != nil {
+		return err
+	}
+
+	err = diaryPictureService.Supabase.Delete(diaryPictureService.DiaryPictureBucket, diaryPicture.Link)
+	if err != nil {
+		return err
+	}
+
+	err = diaryPictureService.DiaryPictureRepository.DeleteDiaryPicture(ID)
 	if err != nil {
 		return err
 	}
