@@ -5,7 +5,7 @@ FROM golang:1.22.0
 WORKDIR /cmd/app
 
 # Copy the application files into the working directory
-COPY . /cmd/app
+COPY ./cmd/main /cmd/app
 
 # Build the application
 RUN go build -o main .
