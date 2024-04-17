@@ -51,7 +51,7 @@ func (diaryRepository *DiaryRepository) GetDiaryById(id string) (*entity.Diary, 
 
 	stmt := `SELECT * FROM diaries 
 	LEFT JOIN diary_pictures ON diaries.id = diary_pictures.diaryId
-	WHERE diaries.id = ? 
+	WHERE diaries.id = ?
 	`
 
 	tx, err := diaryRepository.db.Begin()
