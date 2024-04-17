@@ -8,6 +8,7 @@ type Repository struct {
 	DiaryRepository        IDiaryRepository
 	UserRepository         IUserRepository
 	DiaryPictureRepository IDiaryPictureRepository
+	PeopleRepository       IPeopleRepository
 }
 
 func NewRepository(db *sql.DB) *Repository {
@@ -15,5 +16,6 @@ func NewRepository(db *sql.DB) *Repository {
 		DiaryRepository:        NewDiaryRepository(db),
 		UserRepository:         NewUserRepository(db),
 		DiaryPictureRepository: NewDiaryPictureRepository(db),
+		PeopleRepository:       NewPeopleRepository(db),
 	}
 }

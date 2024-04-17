@@ -33,7 +33,7 @@ func NewRest(service *service.Service, middleware middleware.Interface, jwt jwt.
 }
 
 func MountDiary(routerGroup *gin.RouterGroup, r *Rest) {
-	diary := routerGroup.Group("/diary", r.middleware.AuthenticateUser)
+	diary := routerGroup.Group("/diaries", r.middleware.AuthenticateUser)
 	MountDiaryPicture(diary, r)
 	diary.POST("", r.CreateDiary)
 	diary.GET("/", r.GetDiary)
@@ -49,7 +49,7 @@ func MountDiaryPicture(routerGroup *gin.RouterGroup, r *Rest) {
 }
 
 func MountUser(routerGroup *gin.RouterGroup, r *Rest) {
-	user := routerGroup.Group("/user")
+	user := routerGroup.Group("/users")
 	user.POST("/register", r.Register)
 	user.POST("/login", r.Login)
 	user.PUT("/profile-picture", r.middleware.AuthenticateUser, r.UploadProfilePicture)
@@ -57,9 +57,9 @@ func MountUser(routerGroup *gin.RouterGroup, r *Rest) {
 	user.GET("", r.middleware.AuthenticateUser, r.GetLoginUser)
 }
 
-func (r *Rest) GetLoginUser(ctx *gin.Context) {
-	user, _ := r.jwt.GetLoginUser(ctx)
-	response.Success(ctx, http.StatusOK, "success", user)
+func MountPoeple(routerGroup *gin.RouterGroup, r *Rest) {
+	people := routerGroup.Group("/peoples")
+	people.POST("", r.middleware.AuthenticateUser, r.CreatePeople)
 }
 
 func (r *Rest) MountEndpoint() {
@@ -72,6 +72,7 @@ func (r *Rest) MountEndpoint() {
 	routerGroup := r.router.Group("/api/v1")
 	MountDiary(routerGroup, r)
 	MountUser(routerGroup, r)
+	MountPoeple(routerGroup, r)
 }
 
 func (r *Rest) Run() {

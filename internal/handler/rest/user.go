@@ -10,6 +10,11 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+func (r *Rest) GetLoginUser(ctx *gin.Context) {
+	user, _ := r.jwt.GetLoginUser(ctx)
+	response.Success(ctx, http.StatusOK, "success", user)
+}
+
 func (r *Rest) Register(ctx *gin.Context) {
 	userReq := &model.UserRegister{}
 	if err := ctx.ShouldBindJSON(userReq); err != nil {

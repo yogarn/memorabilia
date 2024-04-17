@@ -11,6 +11,7 @@ type Service struct {
 	DiaryService        IDiaryService
 	UserService         IUserService
 	DiaryPictureService IDiaryPictureService
+	PeopleService       IPeopleService
 }
 
 func NewService(repository *repository.Repository, bcrypt bcrypt.Interface, jwt jwt.Interface, supabase supabase.Interface) *Service {
@@ -18,5 +19,6 @@ func NewService(repository *repository.Repository, bcrypt bcrypt.Interface, jwt 
 		DiaryService:        NewDiaryService(repository.DiaryRepository, jwt),
 		UserService:         NewUserService(repository.UserRepository, bcrypt, jwt, supabase),
 		DiaryPictureService: NewDiaryPictureService(repository.DiaryPictureRepository, supabase),
+		PeopleService:       NewPeopleService(repository.PeopleRepository, jwt),
 	}
 }
