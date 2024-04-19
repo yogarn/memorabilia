@@ -60,6 +60,7 @@ func MountUser(routerGroup *gin.RouterGroup, r *Rest) {
 func MountPoeple(routerGroup *gin.RouterGroup, r *Rest) {
 	people := routerGroup.Group("/peoples")
 	people.POST("", r.middleware.AuthenticateUser, r.CreatePeople)
+	people.PATCH("/:peopleId", r.middleware.AuthenticateUser, r.UpdatePeople)
 }
 
 func (r *Rest) MountEndpoint() {

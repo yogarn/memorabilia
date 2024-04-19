@@ -1,6 +1,7 @@
 package service
 
 import (
+	"errors"
 	"memorabilia/entity"
 	"memorabilia/internal/repository"
 	"memorabilia/model"
@@ -13,6 +14,7 @@ import (
 
 type IPeopleService interface {
 	CreatePeople(ctx *gin.Context, peopleModel *model.CreatePeople) (*entity.People, error)
+	UpdatePeople(id string, peopleReq *model.UpdatePeople) (*model.UpdatePeople, error)
 }
 
 type PeopleService struct {
@@ -45,6 +47,17 @@ func (peopleService *PeopleService) CreatePeople(ctx *gin.Context, peopleModel *
 	people, err = peopleService.PeopleRepository.CreatePeople(people)
 	if err != nil {
 		return nil, err
+	}
+	return people, nil
+}
+
+func (peopleService *PeopleService) UpdatePeople(id string, peopleReq *model.UpdatePeople) (*model.UpdatePeople, error) {
+	if peopleReq.Name == "" && peopleReq.Description == "" && peopleReq.Relation == "" {
+		return peopleReq, errors.New("provide at least one field to update")
+	}
+	people, err := peopleService.PeopleRepository.UpdatePeople(id, peopleReq)
+	if err != nil {
+		return peopleReq, err
 	}
 	return people, nil
 }
