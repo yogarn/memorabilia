@@ -15,6 +15,7 @@ import (
 type IPeopleService interface {
 	CreatePeople(ctx *gin.Context, peopleModel *model.CreatePeople) (*entity.People, error)
 	UpdatePeople(id string, peopleReq *model.UpdatePeople) (*model.UpdatePeople, error)
+	DeletePeople(id string) error
 }
 
 type PeopleService struct {
@@ -60,4 +61,12 @@ func (peopleService *PeopleService) UpdatePeople(id string, peopleReq *model.Upd
 		return peopleReq, err
 	}
 	return people, nil
+}
+
+func (peopleService *PeopleService) DeletePeople(id string) error {
+	err := peopleService.PeopleRepository.DeletePeople(id)
+	if err != nil {
+		return err
+	}
+	return nil
 }

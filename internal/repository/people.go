@@ -12,6 +12,7 @@ import (
 type IPeopleRepository interface {
 	CreatePeople(people *entity.People) (*entity.People, error)
 	UpdatePeople(id string, people *model.UpdatePeople) (*model.UpdatePeople, error)
+	DeletePeople(id string) error
 }
 
 type PeopleRepository struct {
@@ -84,4 +85,32 @@ func (peopleRepository *PeopleRepository) UpdatePeople(id string, people *model.
 
 	err = tx.Commit()
 	return people, err
+}
+
+func (peopleRepository *PeopleRepository) DeletePeople(id string) error {
+	stmt := `DELETE FROM peoples WHERE id = ?`
+	tx, err := peopleRepository.db.Begin()
+	if err != nil {
+		return err
+	}
+
+	result, err := tx.Exec(stmt, id)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	if rowsAffected <= 0 {
+		tx.Rollback()
+		return errors.New("no row updated")
+	}
+
+	err = tx.Commit()
+	return err
 }

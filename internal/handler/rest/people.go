@@ -38,3 +38,13 @@ func (r *Rest) UpdatePeople(ctx *gin.Context) {
 	}
 	response.Success(ctx, http.StatusCreated, "success", people)
 }
+
+func (r *Rest) DeletePeople(ctx *gin.Context) {
+	id := ctx.Param("peopleId")
+	err := r.service.PeopleService.DeletePeople(id)
+	if err != nil {
+		response.Error(ctx, http.StatusInternalServerError, "failed to delete people", err)
+		return
+	}
+	response.Success(ctx, http.StatusCreated, "success", id)
+}
