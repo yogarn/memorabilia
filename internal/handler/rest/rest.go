@@ -60,6 +60,7 @@ func MountUser(routerGroup *gin.RouterGroup, r *Rest) {
 func MountPoeple(routerGroup *gin.RouterGroup, r *Rest) {
 	people := routerGroup.Group("/peoples")
 	people.POST("", r.middleware.AuthenticateUser, r.CreatePeople)
+	people.GET("/:peopleId", r.middleware.AuthenticateUser, r.GetPeople)
 	people.PATCH("/:peopleId", r.middleware.AuthenticateUser, r.UpdatePeople)
 	people.DELETE("/:peopleId", r.middleware.AuthenticateUser, r.DeletePeople)
 }

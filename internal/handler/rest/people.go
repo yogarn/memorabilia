@@ -8,6 +8,16 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+func (r *Rest) GetPeople(ctx *gin.Context) {
+	peopleId := ctx.Param("peopleId")
+	people, err := r.service.PeopleService.GetPeople(peopleId)
+	if err != nil {
+		response.Error(ctx, http.StatusInternalServerError, "failed to get people", err)
+		return
+	}
+	response.Success(ctx, http.StatusCreated, "success", people)
+}
+
 func (r *Rest) CreatePeople(ctx *gin.Context) {
 	peopleReq := &model.CreatePeople{}
 	if err := ctx.ShouldBindJSON(peopleReq); err != nil {

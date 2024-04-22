@@ -10,6 +10,7 @@ import (
 )
 
 type IPeopleRepository interface {
+	GetPeople(id string) (*entity.People, error)
 	CreatePeople(people *entity.People) (*entity.People, error)
 	UpdatePeople(id string, people *model.UpdatePeople) (*model.UpdatePeople, error)
 	DeletePeople(id string) error
@@ -21,6 +22,24 @@ type PeopleRepository struct {
 
 func NewPeopleRepository(db *sql.DB) IPeopleRepository {
 	return &PeopleRepository{db}
+}
+
+func (peopleRepository *PeopleRepository) GetPeople(id string) (*entity.People, error) {
+	people := &entity.People{}
+	stmt := `SELECT * FROM peoples WHERE id = ?`
+
+	tx, err := peopleRepository.db.Begin()
+	if err != nil {
+		return nil, err
+	}
+
+	result := tx.QueryRow(stmt, id)
+	err = result.Scan(&people.ID, &people.UserID, &people.Name, &people.Description, &people.Relation, &people.Picture, &people.CreatedAt)
+	if err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+	return people, nil
 }
 
 func (peopleRepository *PeopleRepository) CreatePeople(people *entity.People) (*entity.People, error) {

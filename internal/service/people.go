@@ -13,6 +13,7 @@ import (
 )
 
 type IPeopleService interface {
+	GetPeople(id string) (*entity.People, error)
 	CreatePeople(ctx *gin.Context, peopleModel *model.CreatePeople) (*entity.People, error)
 	UpdatePeople(id string, peopleReq *model.UpdatePeople) (*model.UpdatePeople, error)
 	DeletePeople(id string) error
@@ -28,6 +29,14 @@ func NewPeopleService(peopleRepository repository.IPeopleRepository, jwt jwt.Int
 		PeopleRepository: peopleRepository,
 		jwt:              jwt,
 	}
+}
+
+func (peopleService *PeopleService) GetPeople(id string) (*entity.People, error) {
+	people, err := peopleService.PeopleRepository.GetPeople(id)
+	if err != nil {
+		return nil, err
+	}
+	return people, nil
 }
 
 func (peopleService *PeopleService) CreatePeople(ctx *gin.Context, peopleModel *model.CreatePeople) (*entity.People, error) {
