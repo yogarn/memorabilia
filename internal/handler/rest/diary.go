@@ -1,7 +1,9 @@
 package rest
 
 import (
+	"errors"
 	"memorabilia/model"
+	customErrors "memorabilia/pkg/errors"
 	"memorabilia/pkg/response"
 	"net/http"
 
@@ -27,7 +29,11 @@ func (r *Rest) GetDiaryById(ctx *gin.Context) {
 	id := ctx.Param("diaryId")
 	diary, err := r.service.DiaryService.GetDiaryById(id)
 	if err != nil {
-		response.Error(ctx, http.StatusInternalServerError, "failed to get diary", err)
+		if errors.Is(err, customErrors.ErrRecordNotFound) {
+			response.Error(ctx, http.StatusNotFound, "diary not found", err)
+		} else {
+			response.Error(ctx, http.StatusInternalServerError, "failed to get diary", err)
+		}
 		return
 	}
 	response.Success(ctx, http.StatusOK, "success", diary)
@@ -51,7 +57,11 @@ func (r *Rest) UpdateDiary(ctx *gin.Context) {
 	}
 	diary, err := r.service.DiaryService.UpdateDiary(id, &diaryReq)
 	if err != nil {
-		response.Error(ctx, http.StatusInternalServerError, "failed to update diary", err)
+		if errors.Is(err, customErrors.ErrNoRowUpdated) {
+			response.Error(ctx, http.StatusNotFound, "diary not updated", err)
+		} else {
+			response.Error(ctx, http.StatusInternalServerError, "failed to get diary", err)
+		}
 		return
 	}
 	response.Success(ctx, http.StatusOK, "success", diary)
@@ -61,7 +71,11 @@ func (r *Rest) DeleteDiary(ctx *gin.Context) {
 	id := ctx.Param("diaryId")
 	err := r.service.DiaryService.DeleteDiary(id)
 	if err != nil {
-		response.Error(ctx, http.StatusInternalServerError, "failed to delete diary", err)
+		if errors.Is(err, customErrors.ErrNoRowDeleted) {
+			response.Error(ctx, http.StatusNotFound, "diary not deleted", err)
+		} else {
+			response.Error(ctx, http.StatusInternalServerError, "failed to get diary", err)
+		}
 		return
 	}
 	response.Success(ctx, http.StatusOK, "success", id)

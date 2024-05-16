@@ -1,10 +1,10 @@
 package repository
 
 import (
-	"errors"
 	"fmt"
 	"memorabilia/entity"
 	"memorabilia/model"
+	"memorabilia/pkg/errors"
 	"strings"
 
 	"database/sql"
@@ -62,14 +62,13 @@ func (diaryRepository *DiaryRepository) GetDiaryById(id string) (*entity.Diary, 
 	rows, err := tx.Query(stmt, id)
 	if err != nil {
 		tx.Rollback()
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, errors.New("models: no matching record found")
-		} else {
-			return nil, err
-		}
+		return nil, err
 	}
+	defer rows.Close()
 
+	found := false
 	for rows.Next() {
+		found = true
 		diaryPictureNull := &entity.DiaryPictureNull{}
 
 		err := rows.Scan(&diary.ID, &diary.UserID, &diary.Title, &diary.Body, &diary.CreatedAt,
@@ -90,8 +89,16 @@ func (diaryRepository *DiaryRepository) GetDiaryById(id string) (*entity.Diary, 
 		}
 	}
 
+	if !found {
+		tx.Rollback()
+		return nil, errors.ErrRecordNotFound
+	}
+
 	err = tx.Commit()
-	return diary, err
+	if err != nil {
+		return nil, err
+	}
+	return diary, nil
 }
 
 func (diaryRepository *DiaryRepository) GetDiary() ([]*entity.Diary, error) {
@@ -183,7 +190,7 @@ func (diaryRepository *DiaryRepository) UpdateDiary(id string, diary *model.Upda
 
 	if rowsAffected <= 0 {
 		tx.Rollback()
-		return nil, errors.New("no row updated")
+		return nil, errors.ErrNoRowUpdated
 	}
 
 	err = tx.Commit()
@@ -211,7 +218,7 @@ func (diaryRepository *DiaryRepository) DeleteDiary(id string) error {
 
 	if rowsAffected <= 0 {
 		tx.Rollback()
-		return errors.New("no row deleted")
+		return errors.ErrNoRowDeleted
 	}
 
 	err = tx.Commit()
